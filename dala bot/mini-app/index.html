@@ -1,10 +1,654 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="kk">
 <head>
-  <meta charset="UTF-8">
-  <title>Title</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>УБТ Тест</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Manrope:wght@400;500;600&display=swap');
+
+        :root {
+            --bg: #0a0a0f;
+            --card: #13131a;
+            --border: #1e1e2e;
+            --accent: #6c63ff;
+            --accent2: #ff6584;
+            --green: #43e97b;
+            --red: #ff4d6d;
+            --text: #e8e8f0;
+            --muted: #6b6b80;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Manrope', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse at 20% 20%, rgba(108,99,255,0.08) 0%, transparent 50%),
+                        radial-gradient(ellipse at 80% 80%, rgba(255,101,132,0.06) 0%, transparent 50%);
+            animation: bgPulse 8s ease-in-out infinite alternate;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes bgPulse {
+            0% { transform: scale(1) rotate(0deg); }
+            100% { transform: scale(1.1) rotate(3deg); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 20px 16px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* HEADER */
+        .header {
+            text-align: center;
+            margin-bottom: 28px;
+            animation: fadeDown 0.6s ease;
+        }
+
+        .logo {
+            font-family: 'Unbounded', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 4px;
+            color: var(--accent);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            opacity: 0.8;
+        }
+
+        .title {
+            font-family: 'Unbounded', sans-serif;
+            font-size: 26px;
+            font-weight: 800;
+            line-height: 1.2;
+            background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* PROGRESS */
+        .progress-wrap {
+            margin-bottom: 24px;
+            animation: fadeDown 0.6s ease 0.1s both;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: var(--border);
+            border-radius: 99px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            border-radius: 99px;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* SCORE */
+        .score-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(108,99,255,0.12);
+            border: 1px solid rgba(108,99,255,0.25);
+            border-radius: 99px;
+            padding: 6px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 20px;
+        }
+
+        /* SUBJECT TAG */
+        .subject-tag {
+            display: inline-block;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 5px 12px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 16px;
+        }
+
+        /* QUESTION CARD */
+        .question-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 20px;
+            animation: fadeUp 0.5s ease;
+        }
+
+        .question-text {
+            font-size: 18px;
+            font-weight: 600;
+            line-height: 1.5;
+            color: var(--text);
+        }
+
+        /* OPTIONS */
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            animation: fadeUp 0.5s ease 0.1s both;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px 18px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            width: 100%;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            border-color: var(--accent);
+            background: rgba(108,99,255,0.06);
+            transform: translateX(4px);
+        }
+
+        .option-btn:disabled { cursor: default; }
+
+        .option-letter {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.06);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Unbounded', sans-serif;
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--muted);
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        .option-text {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .option-btn.correct {
+            border-color: var(--green);
+            background: rgba(67, 233, 123, 0.08);
+            animation: pulse 0.4s ease;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--green);
+            color: #000;
+        }
+
+        .option-btn.wrong {
+            border-color: var(--red);
+            background: rgba(255, 77, 109, 0.08);
+            animation: shake 0.4s ease;
+        }
+
+        .option-btn.wrong .option-letter {
+            background: var(--red);
+            color: #fff;
+        }
+
+        /* FEEDBACK */
+        .feedback {
+            border-radius: 14px;
+            padding: 14px 18px;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 16px;
+            animation: fadeUp 0.3s ease;
+            display: none;
+        }
+
+        .feedback.correct {
+            background: rgba(67, 233, 123, 0.1);
+            border: 1px solid rgba(67, 233, 123, 0.3);
+            color: var(--green);
+        }
+
+        .feedback.wrong {
+            background: rgba(255, 77, 109, 0.1);
+            border: 1px solid rgba(255, 77, 109, 0.3);
+            color: var(--red);
+        }
+
+        /* NEXT BTN */
+        .next-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            border: none;
+            border-radius: 14px;
+            padding: 16px;
+            font-family: 'Unbounded', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: all 0.2s ease;
+            display: none;
+            letter-spacing: 0.5px;
+        }
+
+        .next-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(108,99,255,0.4); }
+        .next-btn:active { transform: translateY(0); }
+
+        /* RESULT SCREEN */
+        .result-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 20px 0;
+            animation: fadeUp 0.6s ease;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .result-emoji {
+            font-size: 72px;
+            margin-bottom: 20px;
+            animation: bounceIn 0.6s ease;
+        }
+
+        .result-title {
+            font-family: 'Unbounded', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .result-comment {
+            color: var(--muted);
+            font-size: 15px;
+            margin-bottom: 32px;
+            line-height: 1.5;
+        }
+
+        .result-score {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 24px 40px;
+            margin-bottom: 32px;
+            width: 100%;
+        }
+
+        .score-num {
+            font-family: 'Unbounded', sans-serif;
+            font-size: 48px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+        }
+
+        .score-label {
+            font-size: 13px;
+            color: var(--muted);
+            margin-top: 6px;
+        }
+
+        .restart-btn {
+            width: 100%;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            font-family: 'Unbounded', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            letter-spacing: 0.5px;
+        }
+
+        .restart-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* INTRO SCREEN */
+        .intro-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            flex: 1;
+            justify-content: center;
+            animation: fadeUp 0.6s ease;
+        }
+
+        .intro-icon {
+            font-size: 64px;
+            margin-bottom: 24px;
+        }
+
+        .intro-title {
+            font-family: 'Unbounded', sans-serif;
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #fff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .intro-desc {
+            color: var(--muted);
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+
+        .subjects-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            width: 100%;
+            margin-bottom: 32px;
+        }
+
+        .subject-item {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .start-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            border: none;
+            border-radius: 16px;
+            padding: 18px;
+            font-family: 'Unbounded', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            letter-spacing: 0.5px;
+        }
+
+        .start-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(108,99,255,0.5); }
+
+        /* QUIZ SCREEN */
+        .quiz-screen { display: none; }
+
+        /* ANIMATIONS */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
 </head>
 <body>
+<div class="container">
+    <div class="header">
+        <div class="logo">Білім · УБТ</div>
+        <div class="title">Дайындық<br>Тесті</div>
+    </div>
 
+    <!-- INTRO -->
+    <div class="intro-screen" id="introScreen">
+        <div class="intro-icon">🎓</div>
+        <div class="intro-title">УБТ-ға дайын<br>болайық!</div>
+        <p class="intro-desc">10 сұрақ · 5 пән · Нәтиже бірден</p>
+        <div class="subjects-list">
+            <div class="subject-item">🔢 Математика</div>
+            <div class="subject-item">⚡ Физика</div>
+            <div class="subject-item">🧪 Химия</div>
+            <div class="subject-item">🧬 Биология</div>
+            <div class="subject-item">📜 Тарих</div>
+            <div class="subject-item">🌍 География</div>
+        </div>
+        <button class="start-btn" onclick="startQuiz()">▶ Тестті бастау</button>
+    </div>
+
+    <!-- QUIZ -->
+    <div class="quiz-screen" id="quizScreen">
+        <div class="progress-wrap">
+            <div class="progress-info">
+                <span id="progressText">1 / 10</span>
+                <div class="score-badge">⭐ <span id="scoreDisplay">0</span> ұпай</div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 10%"></div>
+            </div>
+        </div>
+
+        <div class="subject-tag" id="subjectTag">Математика</div>
+
+        <div class="question-card">
+            <div class="question-text" id="questionText">Сұрақ жүктелуде...</div>
+        </div>
+
+        <div class="options" id="optionsContainer"></div>
+
+        <div class="feedback" id="feedback"></div>
+        <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Келесі сұрақ →</button>
+    </div>
+
+    <!-- RESULT -->
+    <div class="result-screen" id="resultScreen">
+        <div class="result-emoji" id="resultEmoji">🏆</div>
+        <div class="result-title" id="resultTitle">Керемет!</div>
+        <p class="result-comment" id="resultComment">УБТ-ға дайынсыз!</p>
+        <div class="result-score">
+            <div class="score-num" id="finalScore">0/10</div>
+            <div class="score-label" id="finalPercent">0%</div>
+        </div>
+        <button class="restart-btn" onclick="restartQuiz()">🔄 Қайта тапсыру</button>
+    </div>
+</div>
+
+<script>
+    // Telegram WebApp init
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+        tg.ready();
+        tg.expand();
+    }
+
+    const QUESTIONS = [
+        { subject: "🔢 Математика", question: "2x + 5 = 15 болса, x = ?", options: ["3", "5", "7", "10"], answer: 1 },
+        { subject: "⚡ Физика", question: "Жарықтың вакуумдағы жылдамдығы қанша?", options: ["3×10⁶ м/с", "3×10⁸ м/с", "3×10¹⁰ м/с", "3×10⁴ м/с"], answer: 1 },
+        { subject: "🧪 Химия", question: "Судың химиялық формуласы қандай?", options: ["CO₂", "H₂SO₄", "H₂O", "NaCl"], answer: 2 },
+        { subject: "🧬 Биология", question: "Адам ағзасында қанша хромосома бар?", options: ["23", "44", "46", "48"], answer: 2 },
+        { subject: "📜 Тарих", question: "Қазақстан тәуелсіздігін қай жылы алды?", options: ["1989", "1990", "1991", "1992"], answer: 2 },
+        { subject: "🔢 Математика", question: "π (пи) санының шамамен мәні қанша?", options: ["2.14", "3.14", "4.14", "3.41"], answer: 1 },
+        { subject: "🌍 География", question: "Қазақстанның астанасы қай қала?", options: ["Алматы", "Шымкент", "Астана", "Қарағанды"], answer: 2 },
+        { subject: "⚡ Физика", question: "Ньютонның бірінші заңы нені сипаттайды?", options: ["Инерция", "Үдеу", "Күш", "Энергия"], answer: 0 },
+        { subject: "🧪 Химия", question: "Алтынның химиялық белгісі қандай?", options: ["Ag", "Al", "Au", "At"], answer: 2 },
+        { subject: "🔢 Математика", question: "√144 = ?", options: ["10", "11", "12", "14"], answer: 2 },
+    ];
+
+    let current = 0;
+    let score = 0;
+    const letters = ["A", "B", "C", "D"];
+
+    function startQuiz() {
+        document.getElementById("introScreen").style.display = "none";
+        document.getElementById("quizScreen").style.display = "block";
+        current = 0;
+        score = 0;
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        const q = QUESTIONS[current];
+        document.getElementById("subjectTag").textContent = q.subject;
+        document.getElementById("questionText").textContent = q.question;
+        document.getElementById("progressText").textContent = `${current + 1} / ${QUESTIONS.length}`;
+        document.getElementById("scoreDisplay").textContent = score;
+        document.getElementById("progressFill").style.width = `${((current + 1) / QUESTIONS.length) * 100}%`;
+
+        const container = document.getElementById("optionsContainer");
+        container.innerHTML = "";
+        q.options.forEach((opt, i) => {
+            const btn = document.createElement("button");
+            btn.className = "option-btn";
+            btn.innerHTML = `<span class="option-letter">${letters[i]}</span><span class="option-text">${opt}</span>`;
+            btn.onclick = () => selectAnswer(i);
+            container.appendChild(btn);
+        });
+
+        document.getElementById("feedback").style.display = "none";
+        document.getElementById("nextBtn").style.display = "none";
+
+        // Re-animate
+        document.querySelector(".question-card").style.animation = "none";
+        document.querySelector(".options").style.animation = "none";
+        setTimeout(() => {
+            document.querySelector(".question-card").style.animation = "fadeUp 0.4s ease";
+            document.querySelector(".options").style.animation = "fadeUp 0.4s ease 0.1s both";
+        }, 10);
+    }
+
+    function selectAnswer(chosen) {
+        const q = QUESTIONS[current];
+        const btns = document.querySelectorAll(".option-btn");
+        btns.forEach(b => b.disabled = true);
+
+        const feedback = document.getElementById("feedback");
+
+        if (chosen === q.answer) {
+            btns[chosen].classList.add("correct");
+            score++;
+            feedback.textContent = "✅ Дұрыс жауап! Жарайсыз!";
+            feedback.className = "feedback correct";
+        } else {
+            btns[chosen].classList.add("wrong");
+            btns[q.answer].classList.add("correct");
+            feedback.textContent = `❌ Қате! Дұрыс жауап: ${q.options[q.answer]}`;
+            feedback.className = "feedback wrong";
+        }
+
+        feedback.style.display = "block";
+        document.getElementById("nextBtn").style.display = "block";
+
+        const isLast = current === QUESTIONS.length - 1;
+        document.getElementById("nextBtn").textContent = isLast ? "Нәтижені көру 🎉" : "Келесі сұрақ →";
+    }
+
+    function nextQuestion() {
+        current++;
+        if (current >= QUESTIONS.length) {
+            showResult();
+        } else {
+            loadQuestion();
+        }
+    }
+
+    function showResult() {
+        document.getElementById("quizScreen").style.display = "none";
+        const result = document.getElementById("resultScreen");
+        result.style.display = "flex";
+
+        const percent = Math.round((score / QUESTIONS.length) * 100);
+        document.getElementById("finalScore").textContent = `${score}/${QUESTIONS.length}`;
+        document.getElementById("finalPercent").textContent = `${percent}%`;
+
+        let emoji, title, comment;
+        if (percent >= 80) {
+            emoji = "🏆"; title = "Керемет!"; comment = "УБТ-ға толықтай дайынсыз!";
+        } else if (percent >= 60) {
+            emoji = "👍"; title = "Жақсы нәтиже!"; comment = "Тағы жаттығыңыз, жақын!";
+        } else if (percent >= 40) {
+            emoji = "📚"; title = "Орташа нәтиже"; comment = "Оқуды жалғастырыңыз!";
+        } else {
+            emoji = "💪"; title = "Тырысыңыз!"; comment = "Бәрі болады, жалықпаңыз!";
+        }
+
+        document.getElementById("resultEmoji").textContent = emoji;
+        document.getElementById("resultTitle").textContent = title;
+        document.getElementById("resultComment").textContent = comment;
+
+        // Send data to Telegram bot
+        if (tg) {
+            tg.sendData(JSON.stringify({ score, total: QUESTIONS.length, percent }));
+        }
+    }
+
+    function restartQuiz() {
+        document.getElementById("resultScreen").style.display = "none";
+        startQuiz();
+    }
+</script>
 </body>
 </html>
